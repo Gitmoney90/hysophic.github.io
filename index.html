@@ -1,12 +1,392 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to Hysophic</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Chapter 1: Units & Dimensions (JEE & Boards)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Custom styles for details/summary to ensure smooth open/close */
+        details summary {
+            cursor: pointer;
+            list-style: none; /* Hide default arrow */
+        }
+        details summary::-webkit-details-marker {
+            display: none; /* Hide default arrow for Webkit */
+        }
+        details[open] summary ~ * {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body>
-  <h1>Hello from Hysophic!</h1>
-  <p>This is your new GitHub Pages website.</p>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900 flex flex-col items-center">
+
+    <!-- Header Section -->
+    <header class="w-full bg-blue-700 text-white shadow-lg p-6 rounded-b-xl mb-8 flex justify-center items-center">
+        <h1 class="text-4xl font-extrabold text-center tracking-tight leading-tight">
+            Physics Chapter 1: Units & Dimensions
+        </h1>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="w-full max-w-7xl px-4 lg:px-8 flex flex-col lg:flex-row gap-8">
+        <!-- Sidebar Navigation -->
+        <nav class="w-full lg:w-1/4 p-6 bg-white rounded-xl shadow-lg h-fit lg:sticky top-8">
+            <ul class="space-y-4">
+                <li>
+                    <button id="notes-btn"
+                        class="flex items-center w-full px-4 py-3 rounded-lg text-left transition-all duration-300 ease-in-out bg-blue-600 text-white shadow-md transform scale-105">
+                        <!-- BookOpenIcon SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open mr-3">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                        <span class="font-semibold text-lg">Detailed Revision Notes</span>
+                    </button>
+                </li>
+                <li>
+                    <button id="board-pyq-btn"
+                        class="flex items-center w-full px-4 py-3 rounded-lg text-left transition-all duration-300 ease-in-out bg-gray-100 text-gray-800 hover:bg-blue-100 hover:text-blue-700">
+                        <!-- GraduationCapIcon SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap mr-3">
+                            <path d="M21.43 14.8V2.05c-.06-.41-.3-.8-.67-1.07-.37-.26-.82-.42-1.27-.48l-6.84-1c-.8-.12-1.56.24-2.06.87L2.43 10.3c-.63.93-.2 2.22.84 2.89l1.6 1.07c.36.24.76.41 1.18.5L9 15.6c.74.1.92.17.47.87l-1.92 2.8c-.8.95-.5 2.42.74 3.09l1.83.9c.73.37 1.48.56 2.23.56s1.5-.19 2.23-.56l1.83-.9c1.24-.67 1.54-2.14.74-3.09l-1.92-2.8c-.45-.7.15-1.03.88-1.14l4.28-.6c.42-.06.82-.23 1.18-.47l1.6-1.07c1.04-.67 1.47-1.96.84-2.89l-4.13-6.14c-.5-.63-1.26-.99-2.06-.87L2.43 10.3c-.63.93-.2 2.22.84 2.89l1.6 1.07c.36.24.76.41 1.18.5L9 15.6c.74.1.92.17.47.87l-1.92 2.8c-.8.95-.5 2.42.74 3.09l1.83.9c.73.37 1.48.56 2.23.56s1.5-.19 2.23-.56l1.83-.9c1.24-.67 1.54-2.14.74-3.09l-1.92-2.8c-.45-.7.15-1.03.88-1.14l4.28-.6c.42-.06.82-.23 1.18-.47l1.6-1.07c1.04-.67 1.47-1.96.84-2.89L21.43 14.8Z"/>
+                        </svg>
+                        <span class="font-semibold text-lg">Previous Year Questions (Boards)</span>
+                    </button>
+                </li>
+                <li>
+                    <button id="jee-pyq-btn"
+                        class="flex items-center w-full px-4 py-3 rounded-lg text-left transition-all duration-300 ease-in-out bg-gray-100 text-gray-800 hover:bg-blue-100 hover:text-blue-700">
+                        <!-- LightbulbIcon SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb mr-3">
+                            <path d="M15 14c.2-.84.5-1.5.9-2.2.4-.7.8-1.3 1.3-1.9C18.5 8.6 20 7 20 5c0-2.2-1.8-4-4-4H8c-2.2 0-4 1.8-4 4 0 2 1.5 3.6 2.8 5.1.5.6.9 1.2 1.3 1.9.4.7.7 1.4.9 2.2"/><path d="M12 22c1.4 0 2-1.12 2-2 0-.3-.3-.6-.6-.8-.4-.2-.8-.4-1.1-.6-.2-.2-.5-.2-.8-.2-.3 0-.6 0-.8.2-.3.2-.7.4-1.1.6-.3.2-.6.5-.6.8 0 .8.6 2 2 2z"/>
+                        </svg>
+                        <span class="font-semibold text-lg">Previous Year Questions (JEE Mains + Advanced)</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Content Display Area -->
+        <main id="content-display" class="w-full lg:w-3/4 p-8 bg-white rounded-xl shadow-lg border border-gray-200">
+            <!-- Content will be dynamically loaded here by JavaScript -->
+        </main>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="w-full bg-blue-700 text-white text-center py-6 mt-12 rounded-t-xl shadow-lg">
+        <p class="text-lg">&copy; <span id="current-year"></span> JEE & Boards Physics Revision. All rights reserved.</p>
+        <p class="text-sm mt-2">Designed for comprehensive exam preparation.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notesBtn = document.getElementById('notes-btn');
+            const boardPyqBtn = document.getElementById('board-pyq-btn');
+            const jeePyqBtn = document.getElementById('jee-pyq-btn');
+            const contentDisplay = document.getElementById('content-display');
+            const currentYearSpan = document.getElementById('current-year');
+
+            // Set current year in footer
+            currentYearSpan.textContent = new Date().getFullYear();
+
+            // Function to render content
+            function renderContent(sectionId) {
+                let htmlContent = '';
+                let title = '';
+                let iconSvg = '';
+
+                // Define content for each section
+                const sections = {
+                    'notes': {
+                        title: "Detailed Revision Notes",
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open mr-3">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                                </svg>`,
+                        content: `
+                            <div class="space-y-6 text-gray-700">
+                                <p>
+                                    Welcome to the detailed revision notes for Class 11 Physics Chapter 1:
+                                    <strong>Physical World and Measurement (Units and Dimensions)</strong>.
+                                    This chapter forms the foundation for all subsequent physics concepts, focusing
+                                    on the fundamental principles of measurement, units, and dimensional analysis.
+                                </p>
+                                <h3 class="text-xl font-semibold text-blue-700">1.1 What is Physics?</h3>
+                                <p>
+                                    Physics is the branch of science that deals with the study of matter and energy
+                                    and their interactions across space and time. It seeks to understand how the
+                                    universe behaves from the smallest subatomic particles to the largest galaxies.
+                                    It is based on observation, experimentation, and mathematical analysis.
+                                </p>
+                                <img
+                                    src="https://placehold.co/600x300/a3e635/1f2937?text=Physics+Concepts"
+                                    alt="Physics Concepts"
+                                    class="w-full rounded-lg shadow-md my-4"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/600x300/e5e7eb/4b5563?text=Image+Load+Error';"
+                                />
+
+                                <h3 class="text-xl font-semibold text-blue-700">1.2 Units and Measurements</h3>
+                                <p>
+                                    Measurement is the process of comparing an unknown quantity with a known standard quantity.
+                                    For measurements to be meaningful, they must be expressed in terms of units.
+                                </p>
+                                <ul class="list-disc list-inside space-y-2">
+                                    <li><strong>Physical Quantities:</strong> Quantities that can be measured, like length, mass, time, temperature, etc.</li>
+                                    <li><strong>Fundamental Quantities:</strong> Quantities that are independent of other quantities. There are seven fundamental quantities in SI system:
+                                        <ol class="list-decimal list-inside ml-5">
+                                            <li>Length (meter, m)</li>
+                                            <li>Mass (kilogram, kg)</li>
+                                            <li>Time (second, s)</li>
+                                            <li>Electric Current (ampere, A)</li>
+                                            <li>Thermodynamic Temperature (kelvin, K)</li>
+                                            <li>Amount of Substance (mole, mol)</li>
+                                            <li>Luminous Intensity (candela, cd)</li>
+                                        </ol>
+                                    </li>
+                                    <li><strong>Derived Quantities:</strong> Quantities that are expressed in terms of fundamental quantities (e.g., speed = distance/time, force = mass &times; acceleration).</li>
+                                    <li><strong>Units:</strong> Standard reference chosen to measure a physical quantity.
+                                        <ul class="list-disc list-inside ml-5">
+                                            <li><strong>SI Units:</strong> The International System of Units.</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <img
+                                    src="https://placehold.co/600x300/818cf8/f8fafc?text=Units+and+Dimensions"
+                                    alt="Units and Dimensions"
+                                    class="w-full rounded-lg shadow-md my-4"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/600x300/e5e7eb/4b5563?text=Image+Load+Error';"
+                                />
+
+                                <h3 class="text-xl font-semibold text-blue-700">1.3 Dimensional Analysis</h3>
+                                <p>
+                                    Dimensions of a physical quantity are the powers to which the fundamental quantities
+                                    must be raised to represent that quantity. Dimensional analysis is a powerful tool
+                                    for checking the consistency of equations and deriving relationships between physical quantities.
+                                </p>
+                                <p>
+                                    <strong>Uses of Dimensional Analysis:</strong>
+                                    <ul class="list-disc list-inside ml-5 space-y-2">
+                                        <li>To check the dimensional consistency of an equation.</li>
+                                        <li>To derive relations among physical quantities.</li>
+                                        <li>To convert a physical quantity from one system of units to another.</li>
+                                    </ul>
+                                </p>
+                                <p class="p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-md">
+                                    <strong>Principle of Homogeneity of Dimensions:</strong> A physical equation is
+                                    dimensionally correct if the dimensions of all the terms on both sides of the
+                                    equation are the same.
+                                </p>
+
+                                <h3 class="text-xl font-semibold text-blue-700">1.4 Errors in Measurement</h3>
+                                <p>
+                                    No measurement is perfectly accurate. There is always some uncertainty or error
+                                    associated with every measurement.
+                                </p>
+                                <ul class="list-disc list-inside space-y-2">
+                                    <li><strong>Systematic Errors:</strong> Errors that tend to be in one direction, either positive or negative.
+                                        <ul class="list-disc list-inside ml-5">
+                                            <li>Instrumental errors</li>
+                                            <li>Personal errors</li>
+                                            <li>Imperfection in experimental technique</li>
+                                            <li>Environmental conditions</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Random Errors:</strong> Errors that occur irregularly and are random in magnitude and direction.</li>
+                                    <li><strong>Least Count Error:</strong> Error associated with the resolution of the instrument.</li>
+                                </ul>
+                                <p>
+                                    <strong>Propagation of Errors:</strong> How errors combine in calculations (addition, subtraction, multiplication, division, powers).
+                                </p>
+
+                                <div class="bg-gradient-to-r from-blue-50 to-indigo-100 p-6 rounded-xl shadow-lg mt-8">
+                                    <h4 class="text-2xl font-bold text-blue-800 mb-4">Key Takeaways for JEE/Boards:</h4>
+                                    <ul class="list-disc list-inside space-y-3 text-lg text-blue-800">
+                                        <li>Master the seven fundamental SI units and their symbols.</li>
+                                        <li>Practice deriving dimensions of various physical quantities.</li>
+                                        <li>Thoroughly understand the principle of homogeneity of dimensions and its applications.</li>
+                                        <li>Learn about different types of errors and how to combine them (error propagation).</li>
+                                        <li>Familiarize yourself with significant figures and rules for rounding off.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        `
+                    },
+                    'board-pyq': {
+                        title: "Previous Year Questions (Boards)",
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap mr-3">
+                                    <path d="M21.43 14.8V2.05c-.06-.41-.3-.8-.67-1.07-.37-.26-.82-.42-1.27-.48l-6.84-1c-.8-.12-1.56.24-2.06.87L2.43 10.3c-.63.93-.2 2.22.84 2.89l1.6 1.07c.36.24.76.41 1.18.5L9 15.6c.74.1.92.17.47.87l-1.92 2.8c-.8.95-.5 2.42.74 3.09l1.83.9c.73.37 1.48.56 2.23.56s1.5-.19 2.23-.56l1.83-.9c1.24-.67 1.54-2.14.74-3.09l-1.92-2.8c-.45-.7.15-1.03.88-1.14l4.28-.6c.42-.06.82-.23 1.18-.47l1.6-1.07c1.04-.67 1.47-1.96.84-2.89l-4.13-6.14c-.5-.63-1.26-.99-2.06-.87L2.43 10.3c-.63.93-.2 2.22.84 2.89l1.6 1.07c.36.24.76.41 1.18.5L9 15.6c.74.1.92.17.47.87l-1.92 2.8c-.8.95-.5 2.42.74 3.09l1.83.9c.73.37 1.48.56 2.23.56s1.5-.19 2.23-.56l1.83-.9c1.24-.67 1.54-2.14.74-3.09l-1.92-2.8c-.45-.7.15-1.03.88-1.14l4.28-.6c.42-.06.82-.23 1.18-.47l1.6-1.07c1.04-.67 1.47-1.96.84-2.89L21.43 14.8Z"/>
+                                </svg>`,
+                        content: `
+                            <div class="space-y-6 text-gray-700">
+                                <p>
+                                    This section contains important previous year questions asked in CBSE Board exams
+                                    related to Physical World and Measurement (Units and Dimensions). Practice these
+                                    to understand the typical question patterns and scoring strategies.
+                                </p>
+                                <div class="p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                                    <h4 class="text-lg font-semibold text-gray-800">Question 1 (CBSE 2018):</h4>
+                                    <p class="mt-2">
+                                        The density of a material in CGS system of units is 4 g/cm³. In a system of
+                                        units in which unit of length is 10 cm and unit of mass is 100 g, what will be
+                                        the numerical value of density of the material?
+                                    </p>
+                                    <details class="mt-4 p-3 bg-white rounded-md shadow-inner">
+                                        <summary class="font-medium text-blue-600 cursor-pointer">Solution</summary>
+                                        <p class="mt-2 text-sm text-gray-600">
+                                            Let $n_1 = 4$, $\\text{System 1 (CGS):} \\quad M_1 = 1 \\text{ g}, L_1 = 1 \\text{ cm}$.<br/>
+                                            $\\text{System 2:} \\quad M_2 = 100 \\text{ g}, L_2 = 10 \\text{ cm}$.<br/>
+                                            Dimensions of density: $[ML^{-3}]$.<br/>
+                                            $n_2 = n_1 \\left( \\frac{M_1}{M_2} \\right)^1 \\left( \\frac{L_1}{L_2} \\right)^{-3}$<br/>
+                                            $n_2 = 4 \\left( \\frac{1 \\text{ g}}{100 \\text{ g}} \\right) \\left( \\frac{1 \\text{ cm}}{10 \\text{ cm}} \\right)^{-3}$<br/>
+                                            $n_2 = 4 \\left( \\frac{1}{100} \\right) \\left( \\frac{1}{10} \\right)^{-3}$<br/>
+                                            $n_2 = 4 \\left( \\frac{1}{100} \\right) (10)^3 = 4 \\left( \\frac{1}{100} \\right) \\times 1000$<br/>
+                                            $n_2 = 4 \\times 10 = 40$.<br/>
+                                            The numerical value of density will be 40.
+                                        </p>
+                                    </details>
+                                </div>
+
+                                <div class="p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                                    <h4 class="text-lg font-semibold text-gray-800">Question 2 (CBSE 2019):</h4>
+                                    <p class="mt-2">
+                                        If the percentage error in the measurement of radius 'r' of a sphere is 2%,
+                                        then what is the percentage error in its volume?
+                                    </p>
+                                    <details class="mt-4 p-3 bg-white rounded-md shadow-inner">
+                                        <summary class="font-medium text-blue-600 cursor-pointer">Solution</summary>
+                                        <p class="mt-2 text-sm text-gray-600">
+                                            Volume of a sphere $V = \\frac{4}{3}\\pi r^3$.<br/>
+                                            Percentage error in volume $\\frac{\\Delta V}{V} \\times 100 = 3 \\times \\frac{\\Delta r}{r} \\times 100$.<br/>
+                                            Given $\\frac{\\Delta r}{r} \\times 100 = 2\\%$.<br/>
+                                            So, $\\frac{\\Delta V}{V} \\times 100 = 3 \\times 2\\% = 6\\%$.<br/>
+                                            The percentage error in its volume is 6%.
+                                        </p>
+                                    </details>
+                                </div>
+                            </div>
+                        `
+                    },
+                    'jee-pyq': {
+                        title: "Previous Year Questions (JEE Mains + Advanced)",
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb mr-3">
+                                    <path d="M15 14c.2-.84.5-1.5.9-2.2.4-.7.8-1.3 1.3-1.9C18.5 8.6 20 7 20 5c0-2.2-1.8-4-4-4H8c-2.2 0-4 1.8-4 4 0 2 1.5 3.6 2.8 5.1.5.6.9 1.2 1.3 1.9.4.7.7 1.4.9 2.2"/><path d="M12 22c1.4 0 2-1.12 2-2 0-.3-.3-.6-.6-.8-.4-.2-.8-.4-1.1-.6-.2-.2-.5-.2-.8-.2-.3 0-.6 0-.8.2-.3.2-.7.4-1.1.6-.3.2-.6.5-.6.8 0 .8.6 2 2 2z"/>
+                                </svg>`,
+                        content: `
+                            <div class="space-y-6 text-gray-700">
+                                <p>
+                                    This section provides a collection of challenging previous year questions from
+                                    JEE Mains and JEE Advanced exams. These questions test your in-depth understanding
+                                    and application of concepts from Physical World and Measurement.
+                                </p>
+                                <div class="p-4 bg-indigo-50 rounded-lg shadow-sm border border-indigo-200">
+                                    <h4 class="text-lg font-semibold text-indigo-800">Question 1 (JEE Mains 2020):</h4>
+                                    <p class="mt-2">
+                                        In a system of units, if force (F), acceleration (A) and time (T) are taken as
+                                        fundamental units, then the dimensional formula of energy is:
+                                        <br/>(A) $F A T^2$ (B) $F A^{-1} T$ (C) $F A T$ (D) $F A T^{-2}$
+                                    </p>
+                                    <details class="mt-4 p-3 bg-white rounded-md shadow-inner">
+                                        <summary class="font-medium text-purple-700 cursor-pointer">Solution</summary>
+                                        <p class="mt-2 text-sm text-gray-600">
+                                            Let energy $E \\propto F^x A^y T^z$.<br/>
+                                            Dimensions of Energy: $[ML^2T^{-2}]$<br/>
+                                            Dimensions of Force $F$: $[MLT^{-2}]$<br/>
+                                            Dimensions of Acceleration $A$: $[LT^{-2}]$<br/>
+                                            Dimensions of Time $T$: $[T]$<br/>
+                                            $[ML^2T^{-2}] = [MLT^{-2}]^x [LT^{-2}]^y [T]^z$<br/>
+                                            $[ML^2T^{-2}] = [M^x L^{x+y} T^{-2x-2y+z}]$<br/>
+                                            Comparing powers of M, L, T:<br/>
+                                            For M: $x=1$<br/>
+                                            For L: $x+y=2 \\implies 1+y=2 \\implies y=1$<br/>
+                                            For T: $-2x-2y+z=-2 \\implies -2(1)-2(1)+z=-2 \\implies -2-2+z=-2 \\implies -4+z=-2 \\implies z=2$<br/>
+                                            So, the dimensional formula of energy is $F^1 A^1 T^2$, which is $F A T^2$.<br/>
+                                            Correct option is (A).
+                                        </p>
+                                    </details>
+                                </div>
+
+                                <div class="p-4 bg-indigo-50 rounded-lg shadow-sm border border-indigo-200">
+                                    <h4 class="text-lg font-semibold text-indigo-800">Question 2 (JEE Advanced 2019):</h4>
+                                    <p class="mt-2">
+                                        The dimension of electrical conductivity is:
+                                        <br/>(A) $[M^{-1}L^{-3}T^3A^2]$ (B) $[M L^3 T^{-3} A^{-2}]$ (C) $[M^{-1}L^{-3}T^2A^2]$ (D) $[M L^3 T^{-2} A^{-2}]$
+                                    </p>
+                                    <details class="mt-4 p-3 bg-white rounded-md shadow-inner">
+                                        <summary class="font-medium text-purple-700 cursor-pointer">Solution</summary>
+                                        <p class="mt-2 text-sm text-gray-600">
+                                            Electrical conductivity ($\\sigma$) is the reciprocal of resistivity ($\\rho$).<br/>
+                                            $\\sigma = \\frac{1}{\\rho}$<br/>
+                                            Resistance $R = \\rho \\frac{L}{A} \\implies \\rho = \\frac{RA}{L}$.<br/>
+                                            So, $\\sigma = \\frac{L}{RA}$.<br/>
+                                            Resistance $R = \\frac{V}{I}$, where $V$ is potential difference and $I$ is current.<br/>
+                                            V = $\\frac{\\text{Work}}{\\text{Charge}}$ = $\\frac{\\text{Energy}}{\\text{Current} \\times \\text{Time}}$ = $\\frac{[ML^2T^{-2}]}{[A][T]}$ = $[ML^2T^{-3}A^{-1}]$<br/>
+                                            So, $R = \\frac{[ML^2T^{-3}A^{-1}]}{[A]} = [ML^2T^{-3}A^{-2}]$<br/>
+                                            Now, substitute dimensions into $\\sigma = \\frac{L}{RA}$:<br/>
+                                            $\\sigma = \\frac{[L]}{[ML^2T^{-3}A^{-2}][L^2]} = \\frac{[L]}{[ML^4T^{-3}A^{-2}]}$<br/>
+                                            This derivation seems incorrect. Let's re-evaluate more directly from Ohm's Law and definitions.<br/>
+                                            Current density $J = \\sigma E$, where $J = I/A$ (current per unit area) and $E = V/L$ (electric field, potential per unit length).<br/>
+                                            So, $\\sigma = \\frac{J}{E} = \\frac{I/A}{V/L} = \\frac{IL}{VA}$.<br/>
+                                            Dimensions of $I = [A]$<br/>
+                                            Dimensions of $L = [L]$<br/>
+                                            Dimensions of $V = [ML^2T^{-3}A^{-1}]$<br/>
+                                            Dimensions of $A = [L^2]$<br/>
+                                            $\\sigma = \\frac{[A][L]}{[ML^2T^{-3}A^{-1}][L^2]} = \\frac{[AL]}{[M L^4 T^{-3} A^{-1}]}$<br/>
+                                            $\\sigma = [M^{-1} L^{-3} T^3 A^2]$<br/>
+                                            Correct option is (A).
+                                        </p>
+                                    </details>
+                                </div>
+                            </div>
+                        `
+                    }
+                };
+
+                // Get content for the selected section
+                const section = sections[sectionId];
+                if (section) {
+                    title = section.title;
+                    iconSvg = section.icon;
+                    htmlContent = section.content;
+                }
+
+                // Update the main content display area
+                contentDisplay.innerHTML = `
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                        ${iconSvg}
+                        ${title}
+                    </h2>
+                    ${htmlContent}
+                `;
+
+                // Update active button styling
+                document.querySelectorAll('nav button').forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'transform', 'scale-105');
+                    btn.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-blue-100', 'hover:text-blue-700');
+                });
+
+                document.getElementById(sectionId + '-btn').classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-blue-100', 'hover:text-blue-700');
+                document.getElementById(sectionId + '-btn').classList.add('bg-blue-600', 'text-white', 'shadow-md', 'transform', 'scale-105');
+            }
+
+            // Event Listeners for navigation buttons
+            notesBtn.addEventListener('click', () => renderContent('notes'));
+            boardPyqBtn.addEventListener('click', () => renderContent('board-pyq'));
+            jeePyqBtn.addEventListener('click', () => renderContent('jee-pyq'));
+
+            // Render default content on initial load
+            renderContent('notes');
+        });
+    </script>
 </body>
 </html>
