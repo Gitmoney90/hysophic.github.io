@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 10 Biology — Hysophic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(180deg,#06152a 0%, #02111a 100%); color: #e6eef8; }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.04); }
+        .card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); }
+        .btn { transition: transform .15s ease, box-shadow .15s ease; }
+        .btn:hover { transform: translateY(-3px); }
+        .correct { background:#16a34a; color:white; }
+        .incorrect { background:#dc2626; color:white; }
+    </style>
+</head>
+<body class="min-h-screen">
+<header class="fixed w-full z-40 top-0">
+  <div class="container mx-auto px-6 py-4">
+    <div class="flex items-center justify-between glass rounded-xl p-3">
+      <a href="index.html" class="text-xl font-bold">Hysophic</a>
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="index.html" class="text-neutral-300 hover:text-white">Home</a>
+        <a href="index.html#articles" class="text-neutral-300 hover:text-white">Articles</a>
+        <a href="index.html#topics" class="text-neutral-300 hover:text-white">Topics</a>
+        <a href="index.html#socials" class="text-neutral-300 hover:text-white">Socials</a>
+        <a href="biology.html" class="text-emerald-400 font-semibold">Biology Platform</a>
+      </nav>
+      <div class="md:hidden">
+        <button id="mobile-toggle" class="text-neutral-300"><i data-lucide="menu"></i></button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden mt-2 glass rounded-lg p-3">
+      <a href="index.html" class="block py-2 text-neutral-300">Home</a>
+      <a href="index.html#articles" class="block py-2 text-neutral-300">Articles</a>
+      <a href="index.html#topics" class="block py-2 text-neutral-300">Topics</a>
+      <a href="index.html#socials" class="block py-2 text-neutral-300">Socials</a>
+      <a href="biology.html" class="block py-2 text-emerald-400 font-semibold">Biology Platform</a>
+    </div>
+  </div>
+</header>
+
+<main class="pt-28 container mx-auto px-6">
+  <section class="grid md:grid-cols-3 gap-8 items-start">
+    <div class="md:col-span-2">
+      <div class="card rounded-xl p-6 mb-6">
+        <h1 class="text-3xl font-bold mb-2">Ultimate Class 10 Biology Study Platform</h1>
+        <p class="text-neutral-300 mb-4">Interactive lessons, quizzes, and revision tools built for Class 10 CBSE/ICSE syllabus topics like Life Processes, Heredity, and Natural Resources.</p>
+        <div class="flex gap-3 flex-wrap">
+          <button class="btn btn-start bg-emerald-500 text-white px-4 py-2 rounded-lg">Start Chapter Quiz</button>
+          <a href="#notes" class="text-emerald-300 underline">Jump to Notes</a>
+        </div>
+      </div>
+
+      <div class="card rounded-xl p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Choose a Chapter</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <button class="chapter-btn btn btn-chapter text-left p-4 rounded-lg glass" data-chapter="Life Processes">Life Processes</button>
+          <button class="chapter-btn btn btn-chapter text-left p-4 rounded-lg glass" data-chapter="Control and Coordination">Control and Coordination</button>
+          <button class="chapter-btn btn btn-chapter text-left p-4 rounded-lg glass" data-chapter="Heredity and Evolution">Heredity and Evolution</button>
+          <button class="chapter-btn btn btn-chapter text-left p-4 rounded-lg glass" data-chapter="Natural Resources">Natural Resources</button>
+        </div>
+      </div>
+
+      <div id="quiz-area" class="card rounded-xl p-6 hidden">
+        <h3 id="quiz-title" class="text-lg font-bold mb-3">Quiz</h3>
+        <div id="question" class="mb-4">Question text will appear here.</div>
+        <div id="options" class="grid gap-3"></div>
+        <div class="flex items-center justify-between mt-4">
+          <div id="feedback" class="text-sm"></div>
+          <div>
+            <button id="next-btn" class="btn bg-emerald-500 text-white px-4 py-2 rounded-lg">Next</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside>
+      <div class="card rounded-xl p-4 mb-4">
+        <h4 class="font-semibold mb-2">Quick Revision</h4>
+        <ul class="text-neutral-300 text-sm space-y-2">
+          <li><strong>Life Processes:</strong> Nutrition, Respiration, Transport, Excretion</li>
+          <li><strong>Control & Coordination:</strong> Nervous system, Hormones</li>
+          <li><strong>Heredity:</strong> Mendelian inheritance, Traits</li>
+        </ul>
+      </div>
+      <div class="card rounded-xl p-4">
+        <h4 class="font-semibold mb-2">Performance</h4>
+        <div class="text-sm text-neutral-300">Score: <span id="score">0</span> / <span id="total">0</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <section id="notes" class="mt-8">
+    <div class="card rounded-xl p-6">
+      <h2 class="text-2xl font-bold mb-3">Concise Notes</h2>
+      <article class="prose text-neutral-300">
+        <h3>Life Processes</h3>
+        <p>Nutrition: Autotrophic (photosynthesis) and Heterotrophic. Respiration: Aerobic and Anaerobic. Transport: Circulatory systems in animals; xylem & phloem in plants.</p>
+        <h3>Control and Coordination</h3>
+        <p>Nervous system transmits rapid signals; hormones bring slower, long-lasting regulation.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="mt-12 py-8 text-center text-neutral-400">
+  <div class="container mx-auto px-6">
+    <p>&copy; 2025 Hysophic — Biology Study Platform</p>
+  </div>
+</footer>
+
+<script>
+  lucide.createIcons();
+  // Mobile toggle
+  document.getElementById('mobile-toggle').addEventListener('click', () => {
+    const m = document.getElementById('mobile-menu');
+    m.classList.toggle('hidden');
+  });
+
+  // Simple quiz data (sample)
+  const QUESTIONS = {
+    'Life Processes': [
+      {q: 'Which organelle is the site of photosynthesis?', a: ['Mitochondria','Chloroplast','Ribosome','Golgi apparatus'], c:1},
+      {q: 'Which system transports nutrients in humans?', a: ['Digestive system','Respiratory system','Circulatory system','Nervous system'], c:2}
+    ],
+    'Control and Coordination': [
+      {q: 'What is the chemical messenger released by glands?', a: ['Enzyme','Hormone','Antibody','Neurotransmitter'], c:1}
+    ],
+    'Heredity and Evolution': [
+      {q: 'Father of genetics is?', a: ['Darwin','Mendel','Watson','Crick'], c:1}
+    ],
+    'Natural Resources': [
+      {q: 'Which is a renewable resource?', a: ['Coal','Petroleum','Solar energy','Natural gas'], c:2}
+    ]
+  };
+
+  let currentSet = [];
+  let currentIndex = 0;
+  let score = 0;
+
+  document.querySelectorAll('.chapter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ch = btn.getAttribute('data-chapter');
+      startQuiz(ch);
+    });
+  });
+
+  function startQuiz(chapter){
+    currentSet = QUESTIONS[chapter] ? [...QUESTIONS[chapter]] : [];
+    currentIndex = 0; score = 0;
+    document.getElementById('score').textContent = score;
+    document.getElementById('total').textContent = currentSet.length;
+    if(currentSet.length===0){ alert('No questions available for this chapter.'); return; }
+    document.getElementById('quiz-area').classList.remove('hidden');
+    showQuestion();
+  }
+
+  function showQuestion(){
+    const q = currentSet[currentIndex];
+    document.getElementById('quiz-title').textContent = `Quiz — ${currentIndex+1} / ${currentSet.length}`;
+    document.getElementById('question').textContent = q.q;
+    const opts = document.getElementById('options'); opts.innerHTML = '';
+    q.a.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.className = 'w-full text-left p-3 rounded-lg card';
+      b.textContent = opt;
+      b.addEventListener('click', () => selectOption(i));
+      opts.appendChild(b);
+    });
+    document.getElementById('feedback').textContent = '';
+  }
+
+  function selectOption(i){
+    const q = currentSet[currentIndex];
+    const nodes = Array.from(document.getElementById('options').children);
+    nodes.forEach((n, idx) => n.classList.remove('correct','incorrect'));
+    if(i===q.c){
+      nodes[i].classList.add('correct'); score++;
+      document.getElementById('feedback').textContent = 'Correct ✓';
+    } else {
+      nodes[i].classList.add('incorrect');
+      nodes[q.c].classList.add('correct');
+      document.getElementById('feedback').textContent = 'Incorrect';
+    }
+    document.getElementById('score').textContent = score;
+  }
+
+  document.getElementById('next-btn').addEventListener('click', () => {
+    if(currentIndex < currentSet.length - 1){ currentIndex++; showQuestion(); }
+    else { alert('Quiz finished! Score: ' + score + ' / ' + currentSet.length); }
+  });
+</script>
+</body>
+</html>
