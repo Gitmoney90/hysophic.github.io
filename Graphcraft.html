@@ -1,1 +1,1527 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Graph Simulator</title>
+    <!-- Tailwind CSS for UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- D3.js for graph visualization and force simulation -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
+        :root {
+            /* Classic Dark Theme Palette */
+            --bg-color: #1a1a1a;
+            --panel-bg: #2d2d2d;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --accent-color: #d4af37; /* Classic Gold */
+            --node-default: #4a4a4a;
+            --node-active: #d4af37;
+            --node-visited: #5c8a8a;
+            --node-path: #b33939;
+            --edge-default: #666666;
+            --edge-active: #d4af37;
+            --font-ui: 'Fira Code', monospace;
+            --font-heading: 'Playfair Display', serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling, app is full screen */
+            display: flex;
+            height: 100vh;
+        }
+
+        /* SVG Graph Area Styles */
+        #graph-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #111;
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .node circle {
+            fill: var(--node-default);
+            stroke: #222;
+            stroke-width: 2px;
+            transition: fill 0.3s, r 0.3s, stroke-width 0.3s;
+            cursor: pointer;
+        }
+        
+        .node circle:hover {
+            stroke: var(--accent-color);
+            stroke-width: 3px;
+        }
+
+        .node text {
+            font-family: var(--font-ui);
+            font-size: 14px;
+            fill: #fff;
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: central;
+            font-weight: 600;
+        }
+        
+        .node text.weight-label {
+            font-size: 10px;
+            fill: #aaa;
+            dy: -20;
+        }
+
+        .link {
+            stroke: var(--edge-default);
+            stroke-opacity: 0.8;
+            stroke-width: 2px;
+            transition: stroke 0.3s, stroke-width 0.3s;
+            cursor: pointer;
+            fill: none;
+        }
+        
+        .link:hover {
+            stroke: #888;
+            stroke-width: 4px;
+        }
+
+        .link-label {
+            font-family: var(--font-ui);
+            font-size: 12px;
+            fill: var(--accent-color);
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: central;
+            background: rgba(0,0,0,0.5); /* Not natively supported in SVG text, will use a rect behind it if needed, or just drop shadow */
+            text-shadow: 1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black;
+        }
+
+        /* Interaction States via Classes */
+        .node.active circle { fill: var(--node-active); r: 24; box-shadow: 0 0 10px var(--node-active); }
+        .node.visited circle { fill: var(--node-visited); }
+        .node.path circle { fill: var(--node-path); stroke: #fff; stroke-width: 3px; }
+        .node.start-node circle { stroke: #4CAF50; stroke-width: 4px; stroke-dasharray: 4; }
+        .node.end-node circle { stroke: #F44336; stroke-width: 4px; stroke-dasharray: 4; }
+
+        .link.active { stroke: var(--edge-active); stroke-width: 4px; }
+        .link.visited { stroke: var(--node-visited); stroke-width: 3px; stroke-opacity: 0.5; }
+        .link.path { stroke: var(--node-path); stroke-width: 5px; stroke-opacity: 1; z-index: 10; }
+
+        /* Directed graph arrow heads */
+        #arrows {
+            fill: var(--edge-default);
+        }
+        #arrows-active { fill: var(--edge-active); }
+        #arrows-visited { fill: var(--node-visited); }
+        #arrows-path { fill: var(--node-path); }
+
+        /* UI Panel Styles */
+        #control-panel {
+            width: 350px;
+            background-color: var(--panel-bg);
+            border-left: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .panel-header {
+            padding: 20px;
+            background-color: #222;
+            border-bottom: 1px solid #444;
+            text-align: center;
+        }
+
+        .panel-header h1 {
+            font-family: var(--font-heading);
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .panel-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 20px;
+        }
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-group h3 {
+            font-family: var(--font-heading);
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Forms & Buttons */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        select, input, button {
+            font-family: var(--font-ui);
+            background-color: #1a1a1a;
+            color: var(--text-main);
+            border: 1px solid #555;
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #333;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: #444;
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        
+        button.primary {
+            background-color: var(--accent-color);
+            color: #111;
+            border: none;
+        }
+        button.primary:hover {
+            background-color: #b5952f;
+            color: #000;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #1a1a1a;
+            border: 1px solid #555;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--text-muted);
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-color); border-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: #111; }
+
+        /* Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer;
+            background: #555;
+            border-radius: 2px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            padding: 8px 12px;
+            font: 12px var(--font-ui);
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--accent-color);
+            color: #fff;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        /* Status Bar */
+        #status-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(45, 45, 45, 0.9);
+            border: 1px solid #555;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-family: var(--font-ui);
+            font-size: 14px;
+            color: var(--accent-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            max-width: 60%;
+            pointer-events: none;
+        }
+        
+        /* Edit Mode Indicators */
+        .mode-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-left: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .mode-add { background: #2e7d32; color: white; }
+        .mode-edit { background: #f57c00; color: white; }
+        
+        /* Modal */
+        #message-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--accent-color);
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .modal-content p { margin-bottom: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Main Graph Canvas -->
+    <div id="graph-container">
+        <!-- SVG injected by D3 -->
+        <div id="status-bar">Ready. Click empty space to add nodes, drag between nodes to add edges.</div>
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+
+    <!-- Right Control Panel -->
+    <div id="control-panel">
+        <div class="panel-header">
+            <h1>Graph Sim <i class="fa-solid fa-chart-network text-sm"></i></h1>
+        </div>
+        
+        <div class="panel-content">
+            
+            <!-- Graph Settings -->
+            <div class="control-group">
+                <h3><i class="fa-solid fa-sliders"></i> Graph Properties</h3>
+                
+                <div class="toggle-container">
+                    <label>Directed Graph</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="is-directed">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-container">
+                    <label>Weighted Edges</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="is-weighted" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button id="btn-clear" title="Clear all nodes and edges"><i class="fa-solid fa-trash"></i> Clear</button>
+                    <button id="btn-generate" title="Generate random graph"><i class="fa-solid fa-dice"></i> Random</button>
+                </div>
+            </div>
+
+            <!-- Algorithm Selection & Execution -->
+            <div class="control-group">
+                <h3><i class="fa-solid fa-microchip"></i> Algorithms</h3>
+                
+                <label>Select Algorithm:</label>
+                <select id="algo-select">
+                    <option value="bfs">Breadth-First Search (BFS)</option>
+                    <option value="dfs">Depth-First Search (DFS)</option>
+                    <option value="dijkstra">Dijkstra's Shortest Path</option>
+                    <option value="astar">A* Search</option>
+                    <option value="kruskal">Kruskal's MST (Undirected)</option>
+                </select>
+
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                        <label>Start Node ID:</label>
+                        <input type="number" id="start-node" placeholder="e.g. 0" min="0">
+                    </div>
+                    <div>
+                        <label>End Node ID (Opt):</label>
+                        <input type="number" id="end-node" placeholder="e.g. 5" min="0">
+                    </div>
+                </div>
+
+                <div class="mt-4 mb-2">
+                    <label>Animation Speed:</label>
+                    <input type="range" id="sim-speed" min="1" max="10" value="5">
+                </div>
+
+                <div class="flex gap-2">
+                    <button id="btn-run" class="primary flex-grow"><i class="fa-solid fa-play"></i> Run</button>
+                    <button id="btn-reset-sim" title="Reset Simulation"><i class="fa-solid fa-rotate-left"></i></button>
+                </div>
+            </div>
+
+            <!-- Interaction Modes -->
+            <div class="control-group">
+                <h3><i class="fa-solid fa-hand-pointer"></i> Interaction Mode</h3>
+                <div class="flex flex-col gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer p-2 border border-gray-600 rounded bg-[#1a1a1a]">
+                        <input type="radio" name="mode" value="edit" checked> 
+                        <span><i class="fa-solid fa-pen-nib w-5"></i> Build / Edit</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer p-2 border border-gray-600 rounded bg-[#1a1a1a]">
+                        <input type="radio" name="mode" value="select-start"> 
+                        <span><i class="fa-solid fa-location-dot w-5 text-green-500"></i> Set Start Node</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer p-2 border border-gray-600 rounded bg-[#1a1a1a]">
+                        <input type="radio" name="mode" value="select-end"> 
+                        <span><i class="fa-solid fa-flag-checkered w-5 text-red-500"></i> Set End Node</span>
+                    </label>
+                </div>
+                <p class="text-xs text-gray-400 mt-2 italic">Tip: In Edit mode, Shift+Drag to draw edges.</p>
+            </div>
+            
+             <!-- Physics Settings -->
+             <div class="control-group">
+                <h3><i class="fa-solid fa-atom"></i> Layout Physics</h3>
+                 <div class="toggle-container">
+                    <label>Enable Physics</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="physics-enabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- Custom Modal for Alerts -->
+    <div id="message-modal">
+        <div class="modal-content">
+            <h2 class="text-xl text-[var(--accent-color)] font-[var(--font-heading)] mb-2" id="modal-title">Notice</h2>
+            <p id="modal-message">Message here</p>
+            <button class="primary" onclick="document.getElementById('message-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Application State ---
+        let nodes = [];
+        let links = [];
+        let nextNodeId = 0;
+        
+        // Configuration
+        const config = {
+            nodeRadius: 20,
+            directed: false,
+            weighted: true,
+            mode: 'edit', // 'edit', 'select-start', 'select-end'
+            startNodeId: null,
+            endNodeId: null,
+            physicsEnabled: true,
+            baseDelay: 1000 // ms for animation step at speed 5
+        };
+
+        // Simulation State
+        let isSimulating = false;
+        let simulationSteps = [];
+        let currentStep = 0;
+        let animationTimeout = null;
+
+        // UI Elements
+        const container = document.getElementById('graph-container');
+        const statusBar = document.getElementById('status-bar');
+        const tooltip = document.getElementById('tooltip');
+        const chkDirected = document.getElementById('is-directed');
+        const chkWeighted = document.getElementById('is-weighted');
+        const chkPhysics = document.getElementById('physics-enabled');
+        const inputStartNode = document.getElementById('start-node');
+        const inputEndNode = document.getElementById('end-node');
+        const rangeSpeed = document.getElementById('sim-speed');
+        const selectAlgo = document.getElementById('algo-select');
+        const btnRun = document.getElementById('btn-run');
+
+        // Custom Alert Function
+        function showMessage(title, message) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('message-modal').style.display = 'flex';
+        }
+
+        function updateStatus(msg) {
+            statusBar.innerHTML = msg;
+        }
+
+        // --- D3.js Setup ---
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const svg = d3.select("#graph-container")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .on("click", onSvgClick)
+            .on("mousemove", onSvgMouseMove);
+
+        // Arrow markers for directed graphs
+        const defs = svg.append("defs");
+        
+        function createMarker(id, color) {
+             defs.append("marker")
+                .attr("id", id)
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", config.nodeRadius + 8) // Offset to sit on edge of node
+                .attr("refY", 0)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", color);
+        }
+        
+        createMarker("arrow-default", "var(--edge-default)");
+        createMarker("arrow-active", "var(--edge-active)");
+        createMarker("arrow-visited", "var(--node-visited)");
+        createMarker("arrow-path", "var(--node-path)");
+
+        // Grouping layers to ensure nodes render on top of links
+        const gLinks = svg.append("g").attr("class", "links");
+        const gNodes = svg.append("g").attr("class", "nodes");
+        
+        // Temp line for drawing edges
+        const dragLine = svg.append("path")
+            .attr("class", "link")
+            .style("stroke-dasharray", "5,5")
+            .style("opacity", 0)
+            .attr("d", "M0,0L0,0");
+
+        // Force Simulation setup
+        const forceSimulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id).distance(150))
+            .force("charge", d3.forceManyBody().strength(-500))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collide", d3.forceCollide().radius(config.nodeRadius + 10))
+            .on("tick", ticked);
+
+        // Selection variables
+        let selectedNode = null;
+        let mousedownNode = null;
+        let mouseupNode = null;
+
+        // --- Core Rendering Function ---
+        function updateGraph() {
+            // Update Links
+            let link = gLinks.selectAll(".link-group")
+                .data(links, d => d.source.id + "-" + d.target.id);
+
+            link.exit().remove();
+
+            const linkEnter = link.enter().append("g")
+                .attr("class", "link-group");
+
+            linkEnter.append("path")
+                .attr("class", "link")
+                .attr("id", d => `link-${d.source.id}-${d.target.id}`)
+                .attr("marker-end", config.directed ? "url(#arrow-default)" : "")
+                .on("contextmenu", (event, d) => {
+                    event.preventDefault();
+                    if(config.mode === 'edit' && !isSimulating) removeLink(d);
+                })
+                .on("click", (event, d) => {
+                    if(config.mode === 'edit' && config.weighted && !isSimulating) {
+                        editLinkWeight(d);
+                    }
+                });
+
+            linkEnter.append("text")
+                .attr("class", "link-label")
+                .attr("dy", -5)
+                .append("textPath")
+                .attr("href", d => `#link-${d.source.id}-${d.target.id}`)
+                .attr("startOffset", "50%")
+                .text(d => config.weighted ? d.weight : "");
+
+            link = linkEnter.merge(link);
+            
+            // Update existing links based on config changes
+            link.select(".link")
+                .attr("marker-end", d => {
+                    if (!config.directed) return "";
+                    if (d.isPath) return "url(#arrow-path)";
+                    if (d.isActive) return "url(#arrow-active)";
+                    if (d.isVisited) return "url(#arrow-visited)";
+                    return "url(#arrow-default)";
+                })
+                .attr("class", d => {
+                    let cls = "link";
+                    if(d.isPath) cls += " path";
+                    else if(d.isActive) cls += " active";
+                    else if(d.isVisited) cls += " visited";
+                    return cls;
+                });
+                
+            link.select(".link-label").text(d => config.weighted ? d.weight : "");
+
+            // Update Nodes
+            let node = gNodes.selectAll(".node")
+                .data(nodes, d => d.id);
+
+            node.exit().remove();
+
+            const nodeEnter = node.enter().append("g")
+                .attr("class", "node")
+                .attr("id", d => `node-${d.id}`)
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended))
+                .on("mousedown", onNodeMouseDown)
+                .on("mouseup", onNodeMouseUp)
+                .on("mouseover", onNodeMouseOver)
+                .on("mouseout", onNodeMouseOut)
+                .on("contextmenu", (event, d) => {
+                    event.preventDefault();
+                    if(config.mode === 'edit' && !isSimulating) removeNode(d);
+                });
+
+            nodeEnter.append("circle")
+                .attr("r", config.nodeRadius);
+
+            nodeEnter.append("text")
+                .attr("dy", 1) // slight adjustment for visual centering
+                .text(d => d.id);
+                
+            // Heuristic label (for A*)
+            nodeEnter.append("text")
+                .attr("class", "weight-label heuristic")
+                .text("");
+
+            node = nodeEnter.merge(node);
+            
+            // Update node classes based on state
+            node.attr("class", d => {
+                let cls = "node";
+                if(d.id == config.startNodeId) cls += " start-node";
+                if(d.id == config.endNodeId) cls += " end-node";
+                if(d.isPath) cls += " path";
+                else if(d.isActive) cls += " active";
+                else if(d.isVisited) cls += " visited";
+                return cls;
+            });
+            
+            node.select(".heuristic").text(d => d.h !== undefined && d.h !== Infinity ? `h=${d.h}` : "");
+
+            // Update force simulation
+            forceSimulation.nodes(nodes);
+            forceSimulation.force("link").links(links);
+            forceSimulation.alpha(1).restart();
+            
+            if(!config.physicsEnabled) forceSimulation.stop();
+        }
+
+        function ticked() {
+            gLinks.selectAll(".link-group path")
+                .attr("d", d => {
+                    // For undirected, simple line. For directed, we might want arcs if bidirectional, 
+                    // but keeping it simple lines for now, adjusting for self-loops.
+                    if (d.source === d.target) {
+                        // Self loop
+                        const x1 = d.source.x, y1 = d.source.y;
+                        const r = config.nodeRadius;
+                        return `M ${x1} ${y1-r} A ${r*1.5} ${r*1.5} 0 1 1 ${x1+r} ${y1} A ${r} ${r} 0 0 1 ${x1} ${y1-r}`;
+                    }
+                    return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
+                });
+
+            gNodes.selectAll(".node")
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+        }
+        
+        function constrainBounds(x, y) {
+            const r = config.nodeRadius;
+            return {
+                x: Math.max(r, Math.min(width - r, x)),
+                y: Math.max(r, Math.min(height - r, y))
+            };
+        }
+
+        // --- Interaction Handlers ---
+        
+        function onSvgClick(event) {
+            if (isSimulating || event.defaultPrevented || event.target.tagName !== 'svg') return;
+            
+            if (config.mode === 'edit') {
+                const coords = d3.pointer(event);
+                const newNode = {
+                    id: nextNodeId++,
+                    x: coords[0],
+                    y: coords[1],
+                    // Algo states
+                    isVisited: false, isActive: false, isPath: false,
+                    distance: Infinity, parent: null, h: 0
+                };
+                nodes.push(newNode);
+                updateStatus(`Added Node ${newNode.id}.`);
+                updateGraph();
+            }
+        }
+
+        function onNodeMouseDown(event, d) {
+            if(isSimulating) return;
+            event.stopPropagation();
+            
+            if (config.mode === 'edit') {
+                // If holding Shift, start drawing an edge instead of dragging node
+                if (event.shiftKey) {
+                    mousedownNode = d;
+                    dragLine
+                        .style("opacity", 1)
+                        .attr("d", `M${d.x},${d.y}L${d.x},${d.y}`)
+                        .attr("marker-end", config.directed ? "url(#arrow-default)" : "");
+                }
+            } else if (config.mode === 'select-start') {
+                config.startNodeId = d.id;
+                inputStartNode.value = d.id;
+                updateStatus(`Start node set to ${d.id}`);
+                updateGraph();
+            } else if (config.mode === 'select-end') {
+                config.endNodeId = d.id;
+                inputEndNode.value = d.id;
+                updateStatus(`End node set to ${d.id}`);
+                updateGraph();
+            }
+        }
+
+        function onSvgMouseMove(event) {
+            if (mousedownNode) {
+                const coords = d3.pointer(event);
+                dragLine.attr("d", `M${mousedownNode.x},${mousedownNode.y}L${coords[0]},${coords[1]}`);
+            }
+        }
+
+        function onNodeMouseUp(event, d) {
+            if(isSimulating) return;
+            
+            if (mousedownNode && mousedownNode !== d) {
+                // Finish drawing edge
+                mouseupNode = d;
+                
+                // Check if link already exists
+                let linkExists = links.some(l => 
+                    (l.source.id === mousedownNode.id && l.target.id === mouseupNode.id) ||
+                    (!config.directed && l.source.id === mouseupNode.id && l.target.id === mousedownNode.id)
+                );
+
+                if (!linkExists) {
+                    let weight = 1;
+                    if (config.weighted) {
+                        weight = Math.floor(Math.random() * 9) + 1; // Default random weight 1-9
+                    }
+                    
+                    const newLink = {
+                        source: mousedownNode,
+                        target: mouseupNode,
+                        weight: weight,
+                        isVisited: false, isActive: false, isPath: false
+                    };
+                    links.push(newLink);
+                    updateStatus(`Added Edge ${mousedownNode.id} -> ${mouseupNode.id} (W:${weight})`);
+                } else {
+                    updateStatus("Edge already exists.");
+                }
+                
+                updateGraph();
+            }
+            
+            resetDragLine();
+        }
+
+        function resetDragLine() {
+            mousedownNode = null;
+            mouseupNode = null;
+            dragLine.style("opacity", 0);
+        }
+
+        // Dragging behavior for Force Layout
+        function dragstarted(event, d) {
+            if (event.shiftKey || isSimulating || config.mode !== 'edit') return; // Don't drag if drawing edge
+            if (!event.active && config.physicsEnabled) forceSimulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            if (event.shiftKey || isSimulating || config.mode !== 'edit') return;
+            const b = constrainBounds(event.x, event.y);
+            d.fx = b.x;
+            d.fy = b.y;
+            if(!config.physicsEnabled) {
+                d.x = b.x; d.y = b.y;
+                ticked();
+            }
+        }
+
+        function dragended(event, d) {
+            if (event.shiftKey || isSimulating || config.mode !== 'edit') return;
+            if (!event.active && config.physicsEnabled) forceSimulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // Deletion
+        function removeNode(nodeToRemove) {
+            nodes = nodes.filter(n => n.id !== nodeToRemove.id);
+            links = links.filter(l => l.source.id !== nodeToRemove.id && l.target.id !== nodeToRemove.id);
+            if(config.startNodeId == nodeToRemove.id) { config.startNodeId = null; inputStartNode.value = ''; }
+            if(config.endNodeId == nodeToRemove.id) { config.endNodeId = null; inputEndNode.value = ''; }
+            updateStatus(`Removed Node ${nodeToRemove.id}`);
+            updateGraph();
+        }
+
+        function removeLink(linkToRemove) {
+            links = links.filter(l => l !== linkToRemove);
+            updateStatus(`Removed Edge`);
+            updateGraph();
+        }
+
+        function editLinkWeight(link) {
+            let val = prompt("Enter new weight:", link.weight);
+            if (val !== null && !isNaN(val)) {
+                link.weight = parseFloat(val);
+                updateGraph();
+            }
+        }
+        
+        // Tooltip
+        function onNodeMouseOver(event, d) {
+            tooltip.style.opacity = 1;
+            tooltip.innerHTML = `
+                <b>Node ${d.id}</b><br>
+                Dist: ${d.distance === Infinity ? '∞' : d.distance}<br>
+                ${d.h ? 'Heuristic: ' + d.h : ''}
+            `;
+            tooltip.style.left = (event.pageX + 15) + 'px';
+            tooltip.style.top = (event.pageY - 28) + 'px';
+        }
+        function onNodeMouseOut() {
+            tooltip.style.opacity = 0;
+        }
+
+        // --- UI Controls ---
+        
+        document.querySelectorAll('input[name="mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                config.mode = e.target.value;
+                resetDragLine();
+                let modeText = e.target.parentElement.innerText.trim();
+                updateStatus(`Switched to ${modeText} mode.`);
+            });
+        });
+
+        chkDirected.addEventListener('change', (e) => {
+            config.directed = e.target.checked;
+            resetSimulationState();
+            updateGraph();
+        });
+
+        chkWeighted.addEventListener('change', (e) => {
+            config.weighted = e.target.checked;
+            resetSimulationState();
+            updateGraph();
+        });
+        
+        chkPhysics.addEventListener('change', (e) => {
+            config.physicsEnabled = e.target.checked;
+            if(config.physicsEnabled) {
+                forceSimulation.alpha(1).restart();
+            } else {
+                forceSimulation.stop();
+            }
+        });
+
+        inputStartNode.addEventListener('change', (e) => {
+            let val = parseInt(e.target.value);
+            if (!isNaN(val) && nodes.find(n => n.id === val)) {
+                config.startNodeId = val;
+                updateGraph();
+            } else {
+                e.target.value = config.startNodeId !== null ? config.startNodeId : '';
+            }
+        });
+
+        inputEndNode.addEventListener('change', (e) => {
+            let val = parseInt(e.target.value);
+            if (e.target.value === '') { config.endNodeId = null; updateGraph(); }
+            else if (!isNaN(val) && nodes.find(n => n.id === val)) {
+                config.endNodeId = val;
+                updateGraph();
+            } else {
+                e.target.value = config.endNodeId !== null ? config.endNodeId : '';
+            }
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            if(isSimulating) stopSimulation();
+            nodes = [];
+            links = [];
+            nextNodeId = 0;
+            config.startNodeId = null;
+            config.endNodeId = null;
+            inputStartNode.value = '';
+            inputEndNode.value = '';
+            updateStatus("Graph cleared.");
+            updateGraph();
+        });
+        
+        document.getElementById('btn-reset-sim').addEventListener('click', () => {
+            stopSimulation();
+            resetSimulationState();
+            updateGraph();
+            updateStatus("Simulation reset.");
+        });
+
+        document.getElementById('btn-generate').addEventListener('click', () => {
+            if(isSimulating) stopSimulation();
+            generateRandomGraph();
+        });
+
+        function generateRandomGraph() {
+            nodes = []; links = [];
+            const numNodes = Math.floor(Math.random() * 5) + 6; // 6 to 10 nodes
+            nextNodeId = 0;
+            
+            // Create Nodes in a circle layout roughly
+            const radius = Math.min(width, height) / 3;
+            for (let i = 0; i < numNodes; i++) {
+                const angle = (i / numNodes) * 2 * Math.PI;
+                nodes.push({
+                    id: nextNodeId++,
+                    x: width/2 + radius * Math.cos(angle),
+                    y: height/2 + radius * Math.sin(angle),
+                    isVisited: false, isActive: false, isPath: false,
+                    distance: Infinity, parent: null
+                });
+            }
+
+            // Create random edges
+            const numEdges = numNodes + Math.floor(Math.random() * numNodes);
+            for (let i = 0; i < numEdges; i++) {
+                let s = nodes[Math.floor(Math.random() * numNodes)];
+                let t = nodes[Math.floor(Math.random() * numNodes)];
+                
+                if (s !== t) {
+                    // Check duplicate
+                    let exists = links.some(l => 
+                        (l.source.id === s.id && l.target.id === t.id) ||
+                        (!config.directed && l.source.id === t.id && l.target.id === s.id)
+                    );
+                    if (!exists) {
+                        links.push({
+                            source: s, target: t,
+                            weight: Math.floor(Math.random() * 9) + 1,
+                            isVisited: false, isActive: false, isPath: false
+                        });
+                    }
+                }
+            }
+            
+            config.startNodeId = nodes[0].id;
+            inputStartNode.value = nodes[0].id;
+            config.endNodeId = nodes[numNodes-1].id;
+            inputEndNode.value = nodes[numNodes-1].id;
+            
+            resetSimulationState();
+            updateStatus(`Generated random graph with ${nodes.length} nodes and ${links.length} edges.`);
+            updateGraph();
+        }
+
+        
+        // --- Algorithm Execution Logic ---
+        
+        btnRun.addEventListener('click', () => {
+            if (isSimulating) {
+                stopSimulation();
+                return;
+            }
+            
+            if (nodes.length === 0) {
+                showMessage("Error", "Graph is empty.");
+                return;
+            }
+
+            const algo = selectAlgo.value;
+            
+            // Validation
+            if (algo !== 'kruskal' && config.startNodeId === null) {
+                showMessage("Missing Data", "Please select a Start Node for this algorithm.");
+                return;
+            }
+            if (algo === 'astar' && config.endNodeId === null) {
+                showMessage("Missing Data", "A* search requires an End Node.");
+                return;
+            }
+            if (algo === 'kruskal' && config.directed) {
+                showMessage("Configuration Mismatch", "Kruskal's algorithm is typically for Undirected graphs. Results may be unexpected.");
+            }
+
+            resetSimulationState();
+            updateGraph();
+            simulationSteps = [];
+            
+            const adjList = buildAdjacencyList();
+
+            // Run algorithm logic to generate steps
+            try {
+                switch (algo) {
+                    case 'bfs': runBFS(adjList, config.startNodeId); break;
+                    case 'dfs': runDFS(adjList, config.startNodeId); break;
+                    case 'dijkstra': runDijkstra(adjList, config.startNodeId); break;
+                    case 'astar': runAStar(adjList, config.startNodeId, config.endNodeId); break;
+                    case 'kruskal': runKruskal(); break;
+                }
+                
+                if (simulationSteps.length > 0) {
+                    startSimulation();
+                } else {
+                    updateStatus("Algorithm finished with 0 steps.");
+                }
+            } catch (e) {
+                console.error(e);
+                showMessage("Algorithm Error", "An error occurred while running the algorithm.");
+            }
+        });
+
+        function buildAdjacencyList() {
+            let adj = {};
+            nodes.forEach(n => adj[n.id] = []);
+            links.forEach(l => {
+                adj[l.source.id].push({ target: l.target.id, weight: l.weight, linkRef: l });
+                if (!config.directed) {
+                    adj[l.target.id].push({ target: l.source.id, weight: l.weight, linkRef: l });
+                }
+            });
+            return adj;
+        }
+
+        function createSnapshot(msg, activeNodeIds = [], activeLinkRefs = [], visitedNodeIds = [], visitedLinkRefs = [], pathNodeIds = [], pathLinkRefs = [], nodeData = {}) {
+            // nodeData format: { nodeId: { distance: val, parent: val, h: val } }
+            simulationSteps.push({
+                msg: msg,
+                activeNodes: [...activeNodeIds],
+                activeLinks: [...activeLinkRefs],
+                visitedNodes: [...visitedNodeIds],
+                visitedLinks: [...visitedLinkRefs],
+                pathNodes: [...pathNodeIds],
+                pathLinks: [...pathLinkRefs],
+                data: JSON.parse(JSON.stringify(nodeData)) // deep copy data
+            });
+        }
+
+        function reconstructPath(parents, targetId) {
+            let pathNodes = [];
+            let pathLinks = [];
+            let curr = targetId;
+            pathNodes.push(curr);
+            
+            while(parents[curr] !== null && parents[curr] !== undefined) {
+                let p = parents[curr];
+                pathNodes.push(p);
+                // find link
+                let link = links.find(l => (l.source.id === p && l.target.id === curr) || (!config.directed && l.source.id === curr && l.target.id === p));
+                if(link) pathLinks.push(link);
+                curr = p;
+            }
+            return {nodes: pathNodes, links: pathLinks};
+        }
+
+        
+        function runBFS(adj, startId) {
+            let queue = [startId];
+            let visitedNodes = new Set();
+            let visitedLinks = new Set();
+            let data = {}; nodes.forEach(n => data[n.id] = {distance: Infinity, parent: null});
+            data[startId].distance = 0;
+            
+            visitedNodes.add(startId);
+            createSnapshot(`Start BFS from Node ${startId}`, [startId], [], Array.from(visitedNodes), [], [], [], data);
+
+            while(queue.length > 0) {
+                let curr = queue.shift();
+                
+                createSnapshot(`Dequeue Node ${curr}, exploring neighbors...`, [curr], [], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+
+                for (let edge of adj[curr]) {
+                    visitedLinks.add(edge.linkRef);
+                    createSnapshot(`Checking edge to ${edge.target}`, [curr, edge.target], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                    
+                    if (!visitedNodes.has(edge.target)) {
+                        visitedNodes.add(edge.target);
+                        data[edge.target].distance = data[curr].distance + 1;
+                        data[edge.target].parent = curr;
+                        queue.push(edge.target);
+                        createSnapshot(`Node ${edge.target} unvisited. Enqueueing.`, [curr, edge.target], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                    } else {
+                        createSnapshot(`Node ${edge.target} already visited.`, [curr], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                    }
+                }
+            }
+            
+            // If end node exists, highlight path
+            let pathN = [], pathL = [];
+            let finalMsg = "BFS Complete.";
+            if (config.endNodeId !== null && data[config.endNodeId].parent !== null) {
+                let path = reconstructPath(Object.fromEntries(Object.entries(data).map(([k,v])=>[k,v.parent])), config.endNodeId);
+                pathN = path.nodes; pathL = path.links;
+                finalMsg += ` Path found to Node ${config.endNodeId}.`;
+            }
+            
+            createSnapshot(finalMsg, [], [], Array.from(visitedNodes), Array.from(visitedLinks), pathN, pathL, data);
+        }
+
+        function runDFS(adj, startId) {
+            let visitedNodes = new Set();
+            let visitedLinks = new Set();
+            let data = {}; nodes.forEach(n => data[n.id] = {parent: null});
+            
+            let foundPath = false;
+
+            function dfsRec(curr, parentId, incLink) {
+                if(foundPath) return; // early exit if path found
+                visitedNodes.add(curr);
+                if (parentId !== null) {
+                    data[curr].parent = parentId;
+                    visitedLinks.add(incLink);
+                }
+                
+                createSnapshot(`Visiting Node ${curr}`, [curr], incLink ? [incLink] : [], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                
+                if (config.endNodeId !== null && curr === config.endNodeId) {
+                    foundPath = true;
+                    return;
+                }
+
+                for (let edge of adj[curr]) {
+                    if(foundPath) break;
+                    visitedLinks.add(edge.linkRef);
+                    createSnapshot(`Checking edge to ${edge.target}`, [curr, edge.target], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                    
+                    if (!visitedNodes.has(edge.target)) {
+                        dfsRec(edge.target, curr, edge.linkRef);
+                    } else {
+                         createSnapshot(`Node ${edge.target} already visited. Backtracking.`, [curr], [], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                    }
+                }
+                
+                if(!foundPath) {
+                    createSnapshot(`Finished with Node ${curr}. Backtracking.`, [curr], [], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data);
+                }
+            }
+
+            dfsRec(startId, null, null);
+            
+            let pathN = [], pathL = [];
+            let finalMsg = "DFS Complete.";
+            if (foundPath) {
+                let path = reconstructPath(Object.fromEntries(Object.entries(data).map(([k,v])=>[k,v.parent])), config.endNodeId);
+                pathN = path.nodes; pathL = path.links;
+                finalMsg += ` Path found to Node ${config.endNodeId}.`;
+            }
+            createSnapshot(finalMsg, [], [], Array.from(visitedNodes), Array.from(visitedLinks), pathN, pathL, data);
+        }
+
+        
+        function runDijkstra(adj, startId) {
+            let dist = {}; let parent = {};
+            nodes.forEach(n => { dist[n.id] = Infinity; parent[n.id] = null; });
+            dist[startId] = 0;
+            
+            let pq = [{id: startId, d: 0}]; // Simple array acting as PQ
+            let visitedNodes = new Set();
+            let visitedLinks = new Set();
+            
+            let data = () => {
+                let d = {};
+                nodes.forEach(n => d[n.id] = {distance: dist[n.id], parent: parent[n.id]});
+                return d;
+            };
+
+            createSnapshot(`Initialize Dijkstra. Set dist[${startId}] = 0`, [startId], [], [], [], [], [], data());
+
+            while (pq.length > 0) {
+                // Sort to get min dist (inefficient for large graphs, but fine for simulation)
+                pq.sort((a,b) => a.d - b.d);
+                let u = pq.shift().id;
+
+                if (visitedNodes.has(u)) continue;
+                visitedNodes.add(u);
+                
+                createSnapshot(`Extract min dist node: ${u} (dist = ${dist[u]})`, [u], [], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data());
+                
+                // Early exit if we only care about shortest path to end node
+                if(config.endNodeId !== null && u === config.endNodeId) {
+                    createSnapshot(`Reached target node ${u}. Terminating.`, [u], [], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data());
+                    break;
+                }
+
+                for (let edge of adj[u]) {
+                    let v = edge.target;
+                    let weight = edge.weight;
+                    visitedLinks.add(edge.linkRef);
+                    
+                    createSnapshot(`Relaxing edge ${u} -> ${v} (weight ${weight})`, [u, v], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data());
+
+                    if (!visitedNodes.has(v) && dist[u] + weight < dist[v]) {
+                        dist[v] = dist[u] + weight;
+                        parent[v] = u;
+                        pq.push({id: v, d: dist[v]});
+                        createSnapshot(`Updated dist[${v}] to ${dist[v]}`, [u, v], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data());
+                    } else if (!visitedNodes.has(v)) {
+                         createSnapshot(`No shorter path found via ${u}.`, [u, v], [edge.linkRef], Array.from(visitedNodes), Array.from(visitedLinks), [], [], data());
+                    }
+                }
+            }
+
+            let pathN = [], pathL = [];
+            let finalMsg = "Dijkstra Complete.";
+            if (config.endNodeId !== null && parent[config.endNodeId] !== null) {
+                let path = reconstructPath(parent, config.endNodeId);
+                pathN = path.nodes; pathL = path.links;
+                finalMsg += ` Shortest path cost: ${dist[config.endNodeId]}.`;
+            }
+            createSnapshot(finalMsg, [], [], Array.from(visitedNodes), Array.from(visitedLinks), pathN, pathL, data());
+        }
+
+        
+        function runAStar(adj, startId, endId) {
+            // Heuristic: Euclidean distance
+            let startNode = nodes.find(n => n.id === startId);
+            let endNode = nodes.find(n => n.id === endId);
+            
+            if(!endNode) { showMessage("Error", "End node not found."); return; }
+
+            function heuristic(nId) {
+                let n = nodes.find(x => x.id === nId);
+                // Simple euclidean based on current visual coordinates divided by a factor to scale to edge weights roughly
+                let dx = n.x - endNode.x;
+                let dy = n.y - endNode.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                return Math.round(dist / 50); // Scale factor
+            }
+
+            let gScore = {}; let fScore = {}; let parent = {}; let hScore = {};
+            nodes.forEach(n => { 
+                gScore[n.id] = Infinity; 
+                fScore[n.id] = Infinity; 
+                parent[n.id] = null;
+                hScore[n.id] = heuristic(n.id);
+            });
+            
+            gScore[startId] = 0;
+            fScore[startId] = hScore[startId];
+            
+            let openSet = [startId];
+            let closedSet = new Set();
+            let visitedLinks = new Set();
+            
+            let data = () => {
+                let d = {};
+                nodes.forEach(n => d[n.id] = {distance: gScore[n.id], parent: parent[n.id], h: hScore[n.id]});
+                return d;
+            };
+
+            createSnapshot(`Initialize A*. Start=${startId}, Goal=${endId}. Calculating Heuristics.`, [startId], [], [], [], [], [], data());
+
+            while(openSet.length > 0) {
+                // Find node with lowest fScore in openSet
+                let currIdx = 0;
+                for(let i=1; i<openSet.length; i++) {
+                    if(fScore[openSet[i]] < fScore[openSet[currIdx]]) currIdx = i;
+                }
+                let curr = openSet[currIdx];
+                
+                if (curr === endId) {
+                    createSnapshot(`Reached goal node ${curr}. Terminating.`, [curr], [], Array.from(closedSet), Array.from(visitedLinks), [], [], data());
+                    break;
+                }
+
+                openSet.splice(currIdx, 1);
+                closedSet.add(curr);
+                
+                createSnapshot(`Current node ${curr} (f=${fScore[curr]}, g=${gScore[curr]}, h=${hScore[curr]})`, [curr], [], Array.from(closedSet), Array.from(visitedLinks), [], [], data());
+
+                for(let edge of adj[curr]) {
+                    let neighbor = edge.target;
+                    if(closedSet.has(neighbor)) continue;
+                    
+                    visitedLinks.add(edge.linkRef);
+                    let tentative_gScore = gScore[curr] + edge.weight;
+                    
+                    createSnapshot(`Evaluating neighbor ${neighbor}. Cost via ${curr} = ${tentative_gScore}`, [curr, neighbor], [edge.linkRef], Array.from(closedSet), Array.from(visitedLinks), [], [], data());
+
+                    if(!openSet.includes(neighbor)) {
+                        openSet.push(neighbor);
+                    } else if (tentative_gScore >= gScore[neighbor]) {
+                        createSnapshot(`Path via ${curr} is not better (g=${tentative_gScore} >= ${gScore[neighbor]}).`, [curr, neighbor], [edge.linkRef], Array.from(closedSet), Array.from(visitedLinks), [], [], data());
+                        continue;
+                    }
+
+                    // This path is the best until now. Record it!
+                    parent[neighbor] = curr;
+                    gScore[neighbor] = tentative_gScore;
+                    fScore[neighbor] = gScore[neighbor] + hScore[neighbor];
+                    
+                    createSnapshot(`Found better path to ${neighbor}. Updated g=${gScore[neighbor]}, f=${fScore[neighbor]}.`, [curr, neighbor], [edge.linkRef], Array.from(closedSet), Array.from(visitedLinks), [], [], data());
+                }
+            }
+
+            let pathN = [], pathL = [];
+            let finalMsg = "A* Complete.";
+            if (parent[endId] !== null) {
+                let path = reconstructPath(parent, endId);
+                pathN = path.nodes; pathL = path.links;
+                finalMsg += ` Path found with cost: ${gScore[endId]}.`;
+            } else {
+                finalMsg += " No path found to goal.";
+            }
+            createSnapshot(finalMsg, [], [], Array.from(closedSet), Array.from(visitedLinks), pathN, pathL, data());
+        }
+
+        
+        function runKruskal() {
+            // Disjoint Set data structure
+            let dset = {};
+            nodes.forEach(n => { dset[n.id] = n.id; });
+            
+            function find(i) {
+                if (dset[i] === i) return i;
+                return dset[i] = find(dset[i]);
+            }
+            function union(i, j) {
+                let rootI = find(i);
+                let rootJ = find(j);
+                if (rootI !== rootJ) {
+                    dset[rootI] = rootJ;
+                    return true;
+                }
+                return false;
+            }
+
+            // Sort all edges
+            let sortedLinks = [...links].sort((a,b) => a.weight - b.weight);
+            let mstNodes = new Set();
+            let mstLinks = new Set();
+            
+            createSnapshot(`Initialize Kruskal's MST. Sorted ${sortedLinks.length} edges by weight.`, [], [], [], [], [], [], {});
+
+            let mstWeight = 0;
+
+            for(let link of sortedLinks) {
+                let u = link.source.id;
+                let v = link.target.id;
+                
+                createSnapshot(`Evaluating edge ${u}-${v} (weight ${link.weight})`, [u, v], [link], Array.from(mstNodes), Array.from(mstLinks), [], [], {});
+                
+                if(union(u, v)) {
+                    mstNodes.add(u); mstNodes.add(v);
+                    mstLinks.add(link);
+                    mstWeight += link.weight;
+                    createSnapshot(`Edge ${u}-${v} adds to MST (No cycle). Current MST Weight: ${mstWeight}`, [u, v], [link], Array.from(mstNodes), Array.from(mstLinks), [], [], {});
+                } else {
+                    createSnapshot(`Edge ${u}-${v} creates a cycle. Discarding.`, [u, v], [link], Array.from(mstNodes), Array.from(mstLinks), [], [], {});
+                }
+            }
+            
+            createSnapshot(`Kruskal's Complete. Total MST Weight: ${mstWeight}.`, [], [], [], [], Array.from(mstNodes), Array.from(mstLinks), {});
+        }
+
+
+        
+        // --- Animation Engine ---
+        
+        function startSimulation() {
+            isSimulating = true;
+            currentStep = 0;
+            btnRun.innerHTML = '<i class="fa-solid fa-stop"></i> Stop';
+            btnRun.classList.remove('primary');
+            btnRun.style.backgroundColor = '#d32f2f'; // Red for stop
+            btnRun.style.color = '#fff';
+            
+            // Disable inputs
+            document.querySelectorAll('#control-panel input, #control-panel select').forEach(el => {
+                if(el.id !== 'sim-speed' && el.id !== 'physics-enabled') el.disabled = true;
+            });
+            
+            renderStep();
+        }
+
+        function stopSimulation() {
+            isSimulating = false;
+            clearTimeout(animationTimeout);
+            btnRun.innerHTML = '<i class="fa-solid fa-play"></i> Run';
+            btnRun.classList.add('primary');
+            btnRun.style.backgroundColor = '';
+            btnRun.style.color = '';
+            
+            // Re-enable inputs
+            document.querySelectorAll('#control-panel input, #control-panel select').forEach(el => el.disabled = false);
+        }
+
+        function resetSimulationState() {
+            nodes.forEach(n => {
+                n.isActive = false; n.isVisited = false; n.isPath = false;
+                n.distance = Infinity; n.parent = null; n.h = 0;
+            });
+            links.forEach(l => {
+                l.isActive = false; l.isVisited = false; l.isPath = false;
+            });
+        }
+
+        function renderStep() {
+            if (!isSimulating || currentStep >= simulationSteps.length) {
+                stopSimulation();
+                return;
+            }
+
+            const step = simulationSteps[currentStep];
+            
+            // Reset visual state
+            nodes.forEach(n => { n.isActive = false; n.isVisited = false; n.isPath = false; });
+            links.forEach(l => { l.isActive = false; l.isVisited = false; l.isPath = false; });
+
+            // Apply step state
+            step.visitedNodes.forEach(id => { let n = nodes.find(x=>x.id===id); if(n) n.isVisited = true; });
+            step.visitedLinks.forEach(l => { if(l) l.isVisited = true; });
+            
+            step.activeNodes.forEach(id => { let n = nodes.find(x=>x.id===id); if(n) n.isActive = true; });
+            step.activeLinks.forEach(l => { if(l) l.isActive = true; });
+
+            step.pathNodes.forEach(id => { let n = nodes.find(x=>x.id===id); if(n) n.isPath = true; });
+            step.pathLinks.forEach(l => { if(l) l.isPath = true; });
+            
+            // Update node data (dist, parent, heuristic) for tooltips
+            if (step.data) {
+                for (let id in step.data) {
+                    let n = nodes.find(x => x.id == id);
+                    if (n) {
+                        n.distance = step.data[id].distance;
+                        n.parent = step.data[id].parent;
+                        n.h = step.data[id].h;
+                    }
+                }
+            }
+
+            updateStatus(`Step ${currentStep + 1}/${simulationSteps.length}: ${step.msg}`);
+            updateGraph();
+
+            // Calculate delay based on slider (1=fastest, 10=slowest)
+            // Slider 1 -> Delay 100ms
+            // Slider 10 -> Delay 2000ms
+            const speedVal = parseInt(rangeSpeed.value);
+            // Reverse mapping: value 1 -> fast (short delay), 10 -> slow (long delay)
+            const delay = speedVal * 200; 
+
+            currentStep++;
+            animationTimeout = setTimeout(renderStep, delay);
+        }
+        
+        // Initial setup
+        window.onload = function() {
+            // Generate a small default graph
+            generateRandomGraph();
+            updateStatus("Application Ready. Build a graph or select an algorithm.");
+        };
+
+    </script>
+</body>
+</html>
+```
